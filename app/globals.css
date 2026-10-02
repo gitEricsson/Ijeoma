@@ -1,0 +1,317 @@
+@import "tailwindcss";
+
+/* Neutrals are tinted slightly toward IJEOMA orange (hue ~50). */
+:root {
+  --ink: oklch(0.145 0.006 50);
+  --panel: oklch(0.175 0.007 50 / 0.94);
+  --panel-solid: oklch(0.185 0.007 50);
+  --line: oklch(0.36 0.008 50 / 0.55);
+  --line-strong: oklch(0.55 0.01 50 / 0.6);
+  --text: oklch(0.95 0.008 70);
+  --muted: oklch(0.7 0.01 60);
+  --orange: oklch(0.7 0.2 45);
+  --orange-soft: oklch(0.7 0.2 45 / 0.16);
+  /* Big orange fills (Donate, primary buttons). Full --orange reads brighter
+     over a large area than it does as thin text, so fills sit a step deeper to
+     look the same shade as the orange type (the "$4"). */
+  --orange-fill: oklch(0.62 0.176 45);
+  --on-orange: oklch(0.16 0.02 45);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-panel: var(--panel);
+  --color-panel-solid: var(--panel-solid);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-orange: var(--orange);
+  --color-orange-soft: var(--orange-soft);
+  --color-orange-fill: var(--orange-fill);
+  --color-on-orange: var(--on-orange);
+  --font-sans: var(--font-schibsted);
+}
+
+/* In the components layer so Tailwind utilities (absolute, fixed…) win. */
+@layer components {
+  .label {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--muted);
+  }
+
+  /* The main HUD panel: solid, thin border, corner brackets. */
+  .hud {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--line);
+  }
+  .hud::before,
+  .hud::after {
+    content: "";
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-color: var(--line-strong);
+    pointer-events: none;
+  }
+  .hud::before {
+    top: -1px;
+    left: -1px;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+  .hud::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 1px solid;
+    border-right: 1px solid;
+  }
+
+  /* Small secondary buttons. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--panel-solid);
+    border: 1px solid var(--line);
+    padding: 0.45rem 0.7rem;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .chip:hover {
+    border-color: var(--line-strong);
+  }
+}
+
+html,
+body {
+  background: var(--ink);
+  color: var(--text);
+}
+
+body {
+  font-family: var(--font-schibsted), system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Display type: wide, heavy, italic (only the italic cut is loaded). */
+.font-display {
+  font-family: var(--font-anybody), var(--font-schibsted), sans-serif;
+  font-style: italic;
+  font-stretch: 120%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* Slim scrollbars in the site's colours. */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.thin-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 6px;
+}
+.thin-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.maplibregl-ctrl-attrib {
+  background: oklch(0.145 0.006 50 / 0.6) !important;
+  color: var(--muted) !important;
+  font-size: 9px !important;
+}
+.maplibregl-ctrl-attrib a {
+  color: var(--muted) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Admin form controls. */
+.field {
+  width: 100%;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  padding: 0.6rem 0.75rem;
+  font-size: 16px; /* stops iOS zooming on focus */
+  color: var(--text);
+  border-radius: 0;
+}
+.field:focus {
+  outline: none;
+  border-color: var(--orange);
+}
+.btn-primary {
+  background: var(--orange-fill);
+  color: var(--on-orange);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 0.7rem 1.1rem;
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+}
+.btn {
+  border: 1px solid var(--line-strong);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0.5rem 0.8rem;
+}
+.btn:hover {
+  border-color: var(--text);
+}
+
+/* Replay timeline. */
+.replay-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2px;
+  background: var(--line-strong);
+}
+.replay-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--orange);
+  border: 3px solid var(--ink);
+}
+.replay-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: var(--orange);
+}
+
+/* Desktop map tooltips. */
+.spydey-tip .maplibregl-popup-content {
+  background: var(--panel-solid);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  padding: 6px 9px;
+  font-family: var(--font-schibsted), sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.spydey-tip .maplibregl-popup-tip {
+  display: none;
+}
+.spydey-tip .tip-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.spydey-tip .tip-status {
+  display: block;
+  margin-top: 1px;
+  color: var(--muted);
+}
+.spydey-tip .tip-fact {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid var(--line);
+  line-height: 1.4;
+}
+.spydey-tip .tip-src {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Donate plate: a highlight that passes every few seconds. */
+.donate-sheen {
+  background: oklch(1 0 0 / 0.42);
+  transform: translateX(-120%) skewX(-20deg);
+  animation: donate-sheen 5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes donate-sheen {
+  0%,
+  70% {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(900%) skewX(-20deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .donate-sheen {
+    animation: none;
+    display: none;
+  }
+}
+
+/* HUD entrance (CSS, so framer-motion stays off the first load). */
+.hud-in {
+  animation: hud-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes hud-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* Waving flag: strips bob in sequence; a soft band of light rolls across. */
+.wave {
+  overflow: hidden;
+  border-radius: 1px;
+}
+.wave-strip {
+  animation: wave 1.1s ease-in-out infinite alternate;
+}
+@keyframes wave {
+  from {
+    transform: translateY(-0.9px);
+  }
+  to {
+    transform: translateY(0.9px);
+  }
+}
+.wave-shade::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 200%;
+  background: linear-gradient(90deg, oklch(0 0 0 / 0.16), oklch(1 0 0 / 0.2) 25%, oklch(0 0 0 / 0.16) 50%, oklch(1 0 0 / 0.2) 75%, oklch(0 0 0 / 0.16));
+  animation: wave-shade 2.2s linear infinite;
+}
+@keyframes wave-shade {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-in,
+  .wave-strip,
+  .wave-shade::before {
+    animation: none;
+  }
+}
