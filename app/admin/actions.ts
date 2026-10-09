@@ -6,7 +6,8 @@ import { z } from "zod";
 import { createSessionClient } from "@/lib/supabase/server";
 import { rebuildLegs } from "@/lib/legs";
 import { routeLeg, type LineString } from "@/lib/routing";
-import { parseInstagramUrl } from "@/lib/instagram";
+import { fetchPostMeta, parseInstagramUrl, SHORTCODE_RE } from "@/lib/instagram";
+import { lagosDay, shortcodeDate, stopForDay } from "@/lib/igDate";
 import { JOURNEY_TAG, RAISED_TAG } from "@/lib/site";
 
 export type ActionState = { ok?: string; error?: string } | null;
@@ -215,6 +216,58 @@ export async function addPost(_: ActionState, form: FormData): Promise<ActionSta
     if (error) throw new Error(error.code === "23505" ? "That post is already on the site" : error.message);
     await done(db, email, "create", "post", data.id, row);
     return { ok: "Post added." };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+// One-click sync: posts and reels collected from Michael's profile by the
+// "Send to Spydey" bookmark (or pasted). New ones are dated from their
+// shortcodes and filed under the stop he was at that day. Posts already on the
+// site, or deleted from it before, are left alone.
+const ImportItems = z
+  .array(z.object({ kind: z.enum(["post", "reel"]), code: z.string().regex(SHORTCODE_RE) }))
+  .min(1)
+  .max(200);
+
+export async function importPosts(items: { kind: "post" | "reel"; code: string }[]): Promise<ActionState> {
+  try {
+    const { db, email } = await requireAdmin();
+    const list = ImportItems.parse(items);
+    const codes = [...new Set(list.map((i) => i.code))];
+    const [{ data: known }, { data: stops }] = await Promise.all([
+      db.from("posts").select("shortcode").in("shortcode", codes),
+      db.from("stops").select("id,country_iso2,arrived_on").is("deleted_at", null),
+    ]);
+    const skip = new Set((known ?? []).map((k) => k.shortcode));
+    const fresh = list.filter((i, n) => !skip.has(i.code) && list.findIndex((j) => j.code === i.code) === n);
+    if (!fresh.length) return { ok: "Nothing new: those posts are already on the site." };
+
+    const rows = await Promise.all(
+      fresh.map(async (i) => {
+        const url = `https://www.instagram.com/${i.kind === "post" ? "p" : "reel"}/${i.code}/`;
+        const when = shortcodeDate(i.code);
+        const day = when ? lagosDay(when) : null;
+        const stop = day ? stopForDay(stops ?? [], day) : null;
+        const meta = await fetchPostMeta(url);
+        return {
+          url,
+          shortcode: i.code,
+          kind: i.kind,
+          author: meta?.author ?? "michaelspyder",
+          caption: meta?.caption ?? null,
+          posted_on: day,
+          stop_id: stop?.id ?? null,
+          country_iso2: stop?.country_iso2 ?? null,
+          // Newer posts sort after older ones (seconds since 2026).
+          sort: when ? Math.floor(when.getTime() / 1000) - 1_767_225_600 : 0,
+        };
+      }),
+    );
+    const { error } = await db.from("posts").insert(rows);
+    if (error) throw new Error(error.message);
+    await done(db, email, "import", "posts", null, { count: rows.length, codes: rows.map((r) => r.shortcode) });
+    return { ok: `Imported ${rows.length} ${rows.length === 1 ? "post" : "posts"}.` };
   } catch (e) {
     return fail(e);
   }

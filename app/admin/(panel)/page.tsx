@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getAdmin } from "@/lib/admin";
 import { fmtUsd, timeAgo } from "@/lib/format";
-import { fetchCampaignTotals, ngnToUsd } from "@/lib/oncrowdr";
+import { cadToUsd, CAD_PER_USD, EARLIER_DONORS, fetchCampaignTotals } from "@/lib/gofundme";
 import ActionForm, { Field } from "@/components/admin/ActionForm";
 import Analytics, { type Summary } from "@/components/admin/Analytics";
 import { refreshRaised, updateSiteState } from "../actions";
@@ -25,12 +25,14 @@ export default async function Dashboard() {
           <div className="truncate">{current?.name ?? "None"}</div>
         </div>
         <div className="hud p-3">
-          <div className="label">Raised (Oncrowdr, live)</div>
-          <div className="font-mono">{live ? `$${ngnToUsd(live.ngn).toLocaleString("en-US")}` : "unreachable"}</div>
+          <div className="label">Raised (GoFundMe, live)</div>
+          <div className="font-mono">{live ? `$${cadToUsd(live.cad).toLocaleString("en-US")}` : "unreachable"}</div>
+          {live && <div className="label">CA${live.cad.toLocaleString("en-US")}</div>}
         </div>
         <div className="hud p-3">
           <div className="label">Donors</div>
-          <div className="font-mono">{live ? live.donors.toLocaleString("en-US") : "n/a"}</div>
+          <div className="font-mono">{live ? (live.donors + EARLIER_DONORS).toLocaleString("en-US") : "n/a"}</div>
+          <div className="label">includes {EARLIER_DONORS} from Oncrowdr</div>
         </div>
         <div className="hud p-3">
           <div className="label">Site updated</div>
@@ -49,8 +51,8 @@ export default async function Dashboard() {
 
       <section className="flex flex-wrap items-center justify-between gap-3 border border-line p-3 text-sm">
         <span className="text-muted">
-          The public site reads the Oncrowdr total automatically every 6 hours.
-          {live && ` Right now: $${ngnToUsd(live.ngn).toLocaleString("en-US")} of ${fmtUsd(ngnToUsd(live.goalNgn))} (₦${live.ngn.toLocaleString("en-US")} ÷ 1,400, rounded up).`}
+          The public site reads the GoFundMe total automatically every hour.
+          {live && ` Right now: $${cadToUsd(live.cad).toLocaleString("en-US")} of ${fmtUsd(1_000_000)} (CA$${live.cad.toLocaleString("en-US")} ÷ ${CAD_PER_USD}, rounded up).`}
         </span>
         <form action={refreshRaised}>
           <button className="btn">Refresh now</button>
@@ -67,7 +69,7 @@ export default async function Dashboard() {
               <option value="paused">Paused</option>
             </select>
           </Field>
-          <Field label="Fallback amount raised (USD)" hint="Only shown if Oncrowdr can't be reached.">
+          <Field label="Fallback amount raised (USD)" hint="Only shown if GoFundMe can't be reached.">
             <input name="raised_usd" type="number" min="0" step="1" inputMode="numeric" defaultValue={Number(site?.raised_usd ?? 0)} className="field font-mono" />
           </Field>
           <Field label="Next country (teaser shown while at base)">

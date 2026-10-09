@@ -315,3 +315,19 @@ body {
     animation: none;
   }
 }
+
+/* Cards that pop up over the map (trail and checkpoint photos). */
+.card-in {
+  animation: card-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-in {
+    animation: none;
+  }
+}

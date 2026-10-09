@@ -1,5 +1,6 @@
 import { getAdmin } from "@/lib/admin";
 import PostManager from "@/components/admin/PostManager";
+import IgSync from "@/components/admin/IgSync";
 
 export default async function PostsPage() {
   const { db } = await getAdmin();
@@ -15,10 +16,11 @@ export default async function PostsPage() {
       <div>
         <h1 className="text-xl font-semibold">Posts</h1>
         <p className="mt-1 text-sm text-muted">
-          Posts not tied to a stop show under &ldquo;Feed&rdquo; on the site. You can also add posts from a stop&apos;s own page.
+          The site&apos;s Feed shows every post, newest first; posts filed under a stop also appear on that stop. The list below is posts not filed under a stop. You can also add posts from a stop&apos;s own page.
           {attached > 0 && ` ${attached} post(s) are attached to stops.`}
         </p>
       </div>
+      <IgSync />
       <PostManager posts={feed} stops={stops?.map((s) => ({ id: s.id, label: `${s.city} · ${s.arrived_on}` }))} countries={countries ?? []} />
     </div>
   );

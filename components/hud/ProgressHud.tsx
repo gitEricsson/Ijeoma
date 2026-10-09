@@ -5,6 +5,7 @@ import type { Country, Raised, SiteState, Stats } from "@/lib/types";
 import { fmtUsd } from "@/lib/format";
 import { BUILDER_URL, INSTAGRAM_URL } from "@/lib/site";
 import WavingFlag from "@/components/WavingFlag";
+import FireRing from "./FireRing";
 import { useCountUp } from "./useCountUp";
 
 type Props = {
@@ -30,9 +31,11 @@ export default function ProgressHud({ stats, site, raised, current, onCountry, c
   return (
     <header className="pointer-events-auto hud w-full p-3.5 md:p-5">
       <div className="flex items-center gap-3">
-        <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="shrink-0" aria-label="Michael Spyder on Instagram">
-          <Image src="/spyder.jpg" alt="" width={34} height={34} className="rounded-full" />
-        </a>
+        <FireRing>
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="relative z-10 block rounded-full" aria-label="Michael Spyder on Instagram">
+            <Image src="/spyder.jpg" alt="" width={34} height={34} className="block rounded-full" />
+          </a>
+        </FireRing>
         <div className="min-w-0">
           <span className="font-display block text-lg uppercase leading-none">Spydey Tracker</span>
           <p className="mt-1 text-xs leading-snug text-muted md:whitespace-nowrap">Driving all {stats.totalCountries} African countries for cancer awareness</p>

@@ -2,7 +2,7 @@ import { unstable_cache } from "next/cache";
 import { createPublicClient } from "./supabase/server";
 import { computeStats } from "./stats";
 import { JOURNEY_TAG } from "./site";
-import { getCampaignTotals, ngnToUsd } from "./oncrowdr";
+import { cadToUsd, EARLIER_DONORS, getCampaignTotals, GOAL_USD } from "./gofundme";
 import { fetchPostMeta } from "./instagram";
 import type { Country, Expedition, Journey, Leg, Post, Raised, SiteState, Sponsor, Stop } from "./types";
 
@@ -46,21 +46,20 @@ async function loadJourney(): Promise<Journey> {
 }
 
 // Visitors only ever read this cache; admin saves expire the tag.
-export const getJourney = unstable_cache(loadJourney, ["journey-v5"], { tags: [JOURNEY_TAG], revalidate: 86400 });
+export const getJourney = unstable_cache(loadJourney, ["journey-v8"], { tags: [JOURNEY_TAG], revalidate: 86400 });
 
-// Live Oncrowdr totals when reachable, otherwise the admin's manual figure.
+// Live GoFundMe totals when reachable, otherwise the admin's manual figure.
 export async function getRaised(site: SiteState): Promise<Raised> {
   const live = await getCampaignTotals();
   if (live) {
     return {
-      ngn: live.ngn,
-      goalNgn: live.goalNgn,
-      donors: live.donors,
-      usd: ngnToUsd(live.ngn),
-      goalUsd: ngnToUsd(live.goalNgn),
-      source: "oncrowdr",
+      cad: live.cad,
+      donors: live.donors + EARLIER_DONORS,
+      usd: cadToUsd(live.cad),
+      goalUsd: GOAL_USD,
+      source: "gofundme",
       fetchedAt: live.fetchedAt,
     };
   }
-  return { ngn: null, goalNgn: null, donors: null, usd: site.raised_usd, goalUsd: site.goal_usd, source: "manual", fetchedAt: site.raised_updated_at };
+  return { cad: null, donors: null, usd: site.raised_usd, goalUsd: GOAL_USD, source: "manual", fetchedAt: site.raised_updated_at };
 }

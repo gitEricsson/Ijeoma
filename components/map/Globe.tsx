@@ -28,6 +28,8 @@ export type TrailPick = { x: number; y: number; iso2: string | null; stopId: str
 export type GlobeHandle = {
   /** Replay progress 0..1, or null to return to "today". */
   setReplay: (p: number | null) => PathPoint | null;
+  /** Where a map position is on screen right now, or null before the map exists. */
+  screenPoint: (at: LngLat) => { x: number; y: number } | null;
 };
 
 type Props = {
@@ -202,6 +204,12 @@ export default function Globe(props: Props) {
   }, [started]);
 
   useImperativeHandle(ref, () => ({
+    screenPoint(at) {
+      const map = mapRef.current;
+      if (!map) return null;
+      const { x, y } = map.project(at);
+      return { x, y };
+    },
     setReplay(p) {
       const s = state.current;
       const map = mapRef.current;

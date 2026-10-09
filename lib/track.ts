@@ -42,7 +42,7 @@ export function track(kind: "visit" | "donate") {
   if (typeof window === "undefined" || skip()) return;
   const id = browserId();
   if (!id) return;
-  // keepalive lets the Donate click land even as the page hands off to Oncrowdr.
+  // keepalive lets the Donate click land even as the page hands off to GoFundMe.
   fetch(`${SUPABASE_URL}/rest/v1/rpc/track`, {
     method: "POST",
     keepalive: true,

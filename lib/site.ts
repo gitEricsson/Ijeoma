@@ -1,4 +1,4 @@
-export const DONATE_URL = "https://www.oncrowdr.com/explore/c/help-raise-1000000-for-cancer-awareness-in-africa";
+export const DONATE_URL = "https://www.gofundme.com/f/help-michaelspyder-raise-1000000-for-cancer-awareness-in";
 export const INSTAGRAM_URL = "https://www.instagram.com/michaelspyder/";
 export const JOURNEY_TAG = "journey";
 export const RAISED_TAG = "raised";

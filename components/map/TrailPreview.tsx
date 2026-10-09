@@ -13,7 +13,7 @@ const IMG_H = 160;
 
 // The picture card for a spot on the trail. Follows the pointer on desktop;
 // on phones it's pinned where you tapped, with a button to open the stop.
-export default function TrailPreview({ journey, pick, onOpen, onClose }: { journey: Journey; pick: TrailPick | null; onOpen: (stopId: string) => void; onClose: () => void }) {
+export default function TrailPreview({ journey, pick, onOpen, onClose, fading = false }: { journey: Journey; pick: TrailPick | null; onOpen: (stopId: string) => void; onClose: () => void; fading?: boolean }) {
   const [vw, setVw] = useState({ w: 1024, h: 768 });
   useEffect(() => {
     const update = () => setVw({ w: window.innerWidth, h: window.innerHeight });
@@ -36,7 +36,7 @@ export default function TrailPreview({ journey, pick, onOpen, onClose }: { journ
 
   return (
     <div
-      className={`absolute z-30 overflow-hidden border border-line-strong bg-panel-solid shadow-[0_12px_32px_rgba(0,0,0,0.45)] ${pick.pinned ? "pointer-events-auto" : "pointer-events-none"}`}
+      className={`card-in absolute z-30 overflow-hidden border border-line-strong bg-panel-solid shadow-[0_12px_32px_rgba(0,0,0,0.45)] transition-opacity duration-500 ${fading ? "opacity-0" : "opacity-100"} ${pick.pinned ? "pointer-events-auto" : "pointer-events-none"}`}
       style={{ left, top, width: W }}
       role={pick.pinned ? "dialog" : "tooltip"}
       aria-label={country?.name ?? "Trail"}

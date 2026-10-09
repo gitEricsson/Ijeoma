@@ -134,7 +134,8 @@ export default function Sheets({ journey, sheet, setSheet }: Props) {
   }
 
   if (sheet?.kind === "feed") {
-    const posts = journey.posts.filter((p) => !p.stop_id).sort((a, b) => (b.posted_on ?? "").localeCompare(a.posted_on ?? "") || b.sort - a.sort);
+    // Every post, newest first (stop sheets show each stop's own).
+    const posts = [...journey.posts].sort((a, b) => (b.posted_on ?? "").localeCompare(a.posted_on ?? "") || b.sort - a.sort);
     return (
       <BottomSheet open onClose={close} title="Feed" eyebrow="Latest from Instagram">
         <div className="flex flex-col gap-6">

@@ -12,6 +12,8 @@ import type { SheetState } from "@/components/sheets/Sheets";
 import Intro from "./Intro";
 import ReplayBar from "./ReplayBar";
 import TrailPreview from "./TrailPreview";
+import CheckpointPreview from "./CheckpointPreview";
+import { photoFor } from "@/lib/photos";
 import DonateButton from "@/components/hud/DonateButton";
 import { track } from "@/lib/track";
 import type { GlobeHandle, TrailPick } from "./Globe";
@@ -57,6 +59,9 @@ export default function MapApp({ journey, raised }: { journey: Journey; raised: 
   const [replaying, setReplaying] = useState(false);
   const [mapFailed, setMapFailed] = useState(false);
   const [preview, setPreview] = useState<TrailPick | null>(null);
+  // Replay: the checkpoint IJEOMA just reached (its photo shows briefly).
+  const [checkpoint, setCheckpoint] = useState<{ stopId: string; key: number } | null>(null);
+  const lastSeek = useRef({ p: 0, leg: -1 });
 
   const path = useMemo(() => buildPath(journey.legs, journey.stops), [journey]);
   const current = journey.countries.find((c) => c.status === "current") ?? null;
@@ -77,6 +82,20 @@ export default function MapApp({ journey, raised }: { journey: Journey; raised: 
 
   // One visit per page load (private analytics; see lib/track.ts).
   useEffect(() => track("visit"), []);
+
+  // On a fast connection, fetch the full garage model quietly once the map
+  // has settled, so the garage opens straight away. On slower or data-saver
+  // connections it waits until someone reaches for the IJEOMA button.
+  useEffect(() => {
+    if (!mapReady) return;
+    const conn = (navigator as Navigator & { connection?: { effectiveType?: string; saveData?: boolean } }).connection;
+    const fast = conn ? conn.effectiveType === "4g" && !conn.saveData : window.innerWidth >= 1024;
+    if (!fast) return;
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 2500));
+    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
+    const id = idle(() => warmGarage(), { timeout: 6000 });
+    return () => cancel(id);
+  }, [mapReady]);
 
   // Device checks, intro once per session, deep links (?stop=… / ?country=…).
   useEffect(() => {
@@ -106,7 +125,28 @@ export default function MapApp({ journey, raised }: { journey: Journey; raised: 
     setStarted(true);
   }, []);
 
-  const seek = useCallback((p: number) => replayLabel(path, globe.current?.setReplay(p) ?? null), [path]);
+  const seek = useCallback(
+    (p: number) => {
+      const pt = globe.current?.setReplay(p) ?? null;
+      const prev = lastSeek.current;
+      if (pt) {
+        // Playing forwards (small steps, not a jump on the slider): crossing
+        // into the next leg, or reaching the end, means a checkpoint.
+        const driving = p > prev.p && p - prev.p < 0.02;
+        let reached: string | null = null;
+        if (driving && prev.leg >= 0 && pt.legIndex > prev.leg) reached = path.legs[pt.legIndex - 1].leg.to_stop_id;
+        if (driving && p >= 1 && prev.p < 1) reached = path.legs[path.legs.length - 1]?.leg.to_stop_id ?? null;
+        if (reached) {
+          const stop = journey.stops.find((s) => s.id === reached);
+          if (stop && photoFor(journey, stop.country_iso2, stop.id)) setCheckpoint({ stopId: stop.id, key: performance.now() });
+        }
+        lastSeek.current = { p, leg: pt.legIndex };
+      }
+      return replayLabel(path, pt);
+    },
+    [path, journey],
+  );
+  const clearCheckpoint = useCallback(() => setCheckpoint(null), []);
 
   if (env.ready && (!env.webgl || mapFailed)) {
     return <Fallback journey={journey} raised={raised} />;
@@ -176,6 +216,10 @@ export default function MapApp({ journey, raised }: { journey: Journey; raised: 
             globe.current?.setReplay(null);
           }}
         />
+      )}
+
+      {showChrome && replaying && checkpoint && (
+        <CheckpointPreview key={checkpoint.key} journey={journey} stopId={checkpoint.stopId} globe={globe} onDone={clearCheckpoint} />
       )}
 
       {showChrome && (

@@ -95,15 +95,15 @@ export type Stats = {
   stops: number;
 };
 
-// Money raised, read live from Oncrowdr (naira) with the admin's manual
-// figure as a fallback. Shown in dollars: naira ÷ 1,400, rounded up.
+// Money raised, read live from GoFundMe (Canadian dollars, shown in US dollars
+// at a fixed rate) with the admin's manual figure as a fallback. Donors include
+// those from the earlier Oncrowdr campaign. See lib/gofundme.ts.
 export type Raised = {
-  ngn: number | null;
-  goalNgn: number | null;
+  cad: number | null;
   donors: number | null;
   usd: number;
   goalUsd: number;
-  source: "oncrowdr" | "manual";
+  source: "gofundme" | "manual";
   fetchedAt: string | null;
 };
 
