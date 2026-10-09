@@ -36,10 +36,10 @@ export default function Faq({ onGarage }: { onGarage: () => void }) {
 
       <div className="mt-8 bg-orange-soft p-3.5">
         <p className="text-sm font-semibold">Didn&apos;t find your question?</p>
-        <p className="mt-1 text-sm text-muted">Ask Michael directly.</p>
+        <p className="mt-1 text-sm text-muted">Ask Spyder directly.</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <a href={`mailto:${CONTACT_EMAIL}`} className="chip">
-            Email Michael
+            Email Spyder
           </a>
           <a href={INSTAGRAM_DM} target="_blank" rel="noopener noreferrer" className="chip">
             DM on Instagram

@@ -1,6 +1,6 @@
 import { CONTACT_EMAIL, DONATE_URL, INSTAGRAM_DM, YOUTUBE_URL } from "./site";
 
-// The FAQ, in Michael's own words: cleaned up from the Q&A at IJEOMA's
+// The FAQ, in Spyder's own words: cleaned up from the Q&A at IJEOMA's
 // send-off (some questions weren't audible and are inferred from his answers).
 // Edit the copy here; components/sheets/Faq.tsx only lays it out.
 
@@ -11,7 +11,7 @@ export type FaqLink = { label: string; href: string } | { label: string; action:
 export type FaqItem = { q: string; a: FaqBlock[]; links?: FaqLink[] };
 export type FaqGroup = { title: string; items: FaqItem[] };
 
-const EMAIL: FaqLink = { label: "Email Michael", href: `mailto:${CONTACT_EMAIL}` };
+const EMAIL: FaqLink = { label: "Email Spyder", href: `mailto:${CONTACT_EMAIL}` };
 const DM: FaqLink = { label: "DM on Instagram", href: INSTAGRAM_DM };
 const YOUTUBE: FaqLink = { label: "Watch on YouTube", href: YOUTUBE_URL };
 
@@ -158,7 +158,7 @@ export const FAQ: FaqGroup[] = [
     ],
   },
   {
-    title: "Supporting Michael",
+    title: "Supporting Spyder",
     items: [
       {
         q: "How can I support you, including your wellbeing on the road?",
