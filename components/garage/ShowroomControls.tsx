@@ -91,7 +91,9 @@ export function ShowroomControls({
   return (
     <div
       ref={wrap}
-      className="absolute right-3 top-3 flex items-center"
+      // Phones: the controls drop down under the button, wrapping onto two rows,
+      // so they never run left under "Full view". Wider screens: one row to its left.
+      className="absolute right-3 top-3 flex flex-col-reverse items-end gap-2 sm:flex-row sm:items-center sm:gap-0"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setHovered(true)}
@@ -99,7 +101,9 @@ export function ShowroomControls({
     >
       {/* The track sweeps open from the button, then the controls flow in over it. */}
       <div
-        className="relative mr-2 flex flex-row-reverse items-center gap-1 border border-line bg-panel-solid/90 p-1"
+        // Phones: just wide enough for the lighting presets, so the four buttons
+        // sit on a row above them.
+        className="relative flex max-w-[13.5rem] flex-row-reverse flex-wrap items-center gap-1 border border-line bg-panel-solid/90 p-1 sm:mr-2 sm:max-w-none sm:flex-nowrap"
         style={{
           clipPath: open ? "inset(0 0 0 0)" : "inset(0 0 0 100%)",
           transition: `clip-path ${open ? 420 : 300}ms ${EASE} ${open ? 0 : 160}ms`,
