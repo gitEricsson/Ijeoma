@@ -154,12 +154,22 @@ export class CarMarker {
     }
     this.canvas.style.transform = `translate(${this.screen.x - SIZE / 2}px, ${this.screen.y - SIZE / 2 - 10}px)`;
 
+    // Heading: the way the road runs, seen on screen. The look-ahead point is
+    // only a few km on, under a pixel away when zoomed out, so project a point
+    // a whole degree along the same direction instead: that keeps the heading
+    // right at every zoom, and she faces the right way from her first frame
+    // rather than starting at "east" and turning round as the map zooms in.
     let target = this.yaw ?? 0;
     if (this.ahead) {
-      const q = map.project(this.ahead);
-      const dx = q.x - p.x;
-      const dy = q.y - p.y;
-      if (Math.hypot(dx, dy) > 0.5) target = -Math.atan2(dy, dx);
+      const gx = this.ahead[0] - pos[0];
+      const gy = this.ahead[1] - pos[1];
+      const g = Math.hypot(gx, gy);
+      if (g > 1e-9) {
+        const q = map.project([pos[0] + gx / g, pos[1] + gy / g]);
+        const dx = q.x - p.x;
+        const dy = q.y - p.y;
+        if (Math.hypot(dx, dy) > 1e-3) target = -Math.atan2(dy, dx);
+      }
     }
     if (this.yaw === null || !this.smooth || dt === 0) this.yaw = target;
     else this.yaw += shortestAngle(this.yaw, target) * (1 - Math.exp(-dt / YAW_TAU));
