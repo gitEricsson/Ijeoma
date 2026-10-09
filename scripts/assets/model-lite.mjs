@@ -6,7 +6,7 @@
 //   node scripts/assets/model-lite.mjs public/models/ijeoma.glb public/models/ijeoma-lite.glb 0.12 0.003
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
-import { weld, simplify, meshopt, prune, dedup, quantize } from "@gltf-transform/functions";
+import { weld, simplify, meshopt, prune, dedup } from "@gltf-transform/functions";
 import { MeshoptSimplifier, MeshoptEncoder, MeshoptDecoder } from "meshoptimizer";
 
 const [src, dest, ratio = "0.05", error = "0.01"] = process.argv.slice(2);

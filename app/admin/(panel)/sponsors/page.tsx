@@ -1,5 +1,6 @@
 import { getAdmin } from "@/lib/admin";
-import { PANELS } from "@/lib/site";
+import { SECTIONS, SPOTS } from "@/lib/site";
+import { sectionOf } from "@/lib/sponsors";
 import ActionForm, { Field } from "@/components/admin/ActionForm";
 import { deleteSponsor, saveSponsor } from "../../actions";
 
@@ -13,10 +14,19 @@ function SponsorFields({ s }: { s: Sponsor }) {
         <Field label="Brand">
           <input name="name" required defaultValue={s.name ?? ""} className="field" />
         </Field>
-        <Field label="Panel on IJEOMA">
-          <select name="panel" defaultValue={s.panel ?? PANELS[0]} className="field">
-            {PANELS.map((p) => (
-              <option key={p}>{p}</option>
+        <Field label="Where on IJEOMA">
+          <select name="panel" defaultValue={s.panel ?? Object.keys(SPOTS)[0]} className="field">
+            {SECTIONS.map(({ id, label }) => (
+              <optgroup key={id} label={label}>
+                {Object.entries(SPOTS)
+                  .filter(([, side]) => side === id)
+                  .map(([spot]) => (
+                    <option key={spot} value={spot}>
+                      {spot}
+                    </option>
+                  ))}
+                <option value={id}>{label} (no sticker yet)</option>
+              </optgroup>
             ))}
           </select>
         </Field>
@@ -29,8 +39,8 @@ function SponsorFields({ s }: { s: Sponsor }) {
           <input name="link" type="url" defaultValue={s.link ?? ""} className="field" />
         </Field>
       </div>
-      <Field label="Logo URL" hint="A hosted image link (PNG or SVG).">
-        <input name="logo_url" type="url" defaultValue={s.logo_url ?? ""} className="field" />
+      <Field label="Logo URL" hint="A hosted image link, or a file in public/ such as /sponsors/c9x.webp. White on transparent reads best on the car.">
+        <input name="logo_url" defaultValue={s.logo_url ?? ""} className="field" />
       </Field>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" name="active" defaultChecked={s.active ?? true} className="accent-orange" /> Active
@@ -42,15 +52,15 @@ function SponsorFields({ s }: { s: Sponsor }) {
 export default async function SponsorsPage() {
   const { db } = await getAdmin();
   const { data: sponsors } = await db.from("sponsors").select("*").is("deleted_at", null).order("created_at");
-  const count = (panel: string) => sponsors?.filter((s) => s.active && s.panel === panel).length ?? 0;
+  const count = (side: string) => sponsors?.filter((s) => s.active && sectionOf(s.panel) === side).length ?? 0;
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold">Sponsors</h1>
       <div className="flex flex-wrap gap-2">
-        {PANELS.map((p) => (
-          <span key={p} className={`label border px-2 py-1 capitalize ${count(p) ? "border-orange text-orange" : "border-line"}`}>
-            {p}: {count(p)} {count(p) === 1 ? "sponsor" : "sponsors"}
+        {SECTIONS.map(({ id, label }) => (
+          <span key={id} className={`label border px-2 py-1 ${count(id) ? "border-orange text-orange" : "border-line"}`}>
+            {label}: {count(id)} {count(id) === 1 ? "sponsor" : "sponsors"}
           </span>
         ))}
       </div>

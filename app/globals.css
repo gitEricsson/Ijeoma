@@ -331,3 +331,13 @@ body {
     animation: none;
   }
 }
+
+/* The garage's motion button: its turntable arrow turns while the stage does. */
+.turntable-spin {
+  animation: turntable-spin 3s linear infinite;
+}
+@keyframes turntable-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

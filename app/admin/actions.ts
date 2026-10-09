@@ -306,7 +306,8 @@ const SponsorSchema = z.object({
   panel: z.string().trim().min(1),
   tier: z.string().trim().min(1).max(40),
   link: z.string().url().nullable(),
-  logo_url: z.string().url().nullable(),
+  // A hosted image, or one shipped with the site (e.g. /sponsors/c9x.webp).
+  logo_url: z.union([z.string().url(), z.string().regex(/^\/[\w./-]+$/)]).nullable(),
   active: z.boolean(),
 });
 

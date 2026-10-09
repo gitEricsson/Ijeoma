@@ -63,7 +63,7 @@ on conflict (iso2) do update set
   ig_highlight_url = coalesce(countries.ig_highlight_url, excluded.ig_highlight_url),
   is_home = excluded.is_home;
 
-insert into site_state (id, status) values (1, 'at_base') on conflict (id) do nothing;
+insert into site_state (id, status, count_home) values (1, 'on_the_road', true) on conflict (id) do nothing;
 
 insert into admins (email) values ('ericssonraphael@gmail.com') on conflict do nothing;
 
@@ -71,6 +71,30 @@ insert into admins (email) values ('ericssonraphael@gmail.com') on conflict do n
 insert into sponsors (name, panel, tier, link, active)
 select 'JEFFFOREX', 'bonnet', 'First sponsor', 'https://www.instagram.com/jeffforex_/', true
 where not exists (select 1 from sponsors where name = 'JEFFFOREX' and deleted_at is null);
+update sponsors set logo_url = '/sponsors/jeffforex.webp' where name = 'JEFFFOREX' and logo_url is null;
+
+-- Stickers re-placed from the photos (Oct 9 2026): move rows from their old spots.
+update sponsors set panel = 'right front wing' where name = 'C9X' and panel = 'left rear door corner';
+update sponsors set panel = 'right rear door glass' where name = 'Ralph Custom' and panel = 'right front window';
+update sponsors set panel = 'rear left corner' where name = 'Solsync' and panel = 'tailgate';
+update sponsors set panel = 'left front door', active = true where name = 'Project Africa 54' and panel = 'roof';
+
+-- The stickers on IJEOMA, where they are on the real car (logos in public/sponsors).
+-- `panel` is a sticker spot (SPOTS in lib/site.ts).
+insert into sponsors (name, panel, tier, link, logo_url, active)
+select v.name, v.panel, v.tier, v.link, v.logo_url, v.active
+from (values
+  ('JEFFFOREX', 'right front door handle', 'First sponsor', 'https://www.instagram.com/jeffforex_/', '/sponsors/jeffforex.webp', true),
+  ('Ralph Custom', 'right rear door glass', 'partner', 'https://www.instagram.com/ralph_custom/', '/sponsors/ralph-custom.webp', true),
+  ('City Jollof', 'left rear window', 'partner', 'https://www.instagram.com/city_jollof/', '/sponsors/city-jollof.webp', true),
+  ('C9X', 'right front wing', 'partner', 'https://www.instagram.com/c9x.ng/', '/sponsors/c9x.webp', true),
+  ('NYNTH WORLD', 'left C-pillar', 'partner', 'https://www.instagram.com/nynthworld/', '/sponsors/nynth-world.webp', true),
+  ('Solsync', 'right rear quarter glass', 'partner', 'https://www.instagram.com/the_solsync/', '/sponsors/solsync.webp', true),
+  ('Solsync', 'rear left corner', 'partner', 'https://www.instagram.com/the_solsync/', '/sponsors/solsync.webp', true),
+  ('Wraphaus', 'rear window', 'partner', 'https://www.instagram.com/wraphaus.ng/', '/sponsors/wraphaus.webp', true),
+  ('Project Africa 54', 'left front door', 'partner', 'https://www.instagram.com/projectafrica54/', '/sponsors/projectafrica54.webp', true)
+) as v (name, panel, tier, link, logo_url, active)
+where not exists (select 1 from sponsors s where s.name = v.name and s.panel = v.panel and s.deleted_at is null);
 
 -- Public reels from @michaelspyder (and collabs) as of Oct 1 2026: buying and
 -- prepping IJEOMA. No stop attached, so they show as "From the road".
@@ -89,22 +113,21 @@ insert into posts (url, shortcode, kind, author, posted_on, caption, sort) value
   ('https://www.instagram.com/michaelspyder/reel/Dd8xvhJxd__/', 'Dd8xvhJxd__', 'reel', 'michaelspyder', '2026-10-01', null, 11)
 on conflict (shortcode) where deleted_at is null do nothing;
 
--- PLACEHOLDER history for the Ghana / Togo / Benin trip. The cities follow
--- the coast road but the dates are NOT real: replace these with Spyder's
--- actual stops in the admin page, then delete this expedition.
--- is_placeholder keeps its dates out of the "days on the road" stat.
+-- The real trip, as reconstructed from Michael's posts (8 Oct 2026): the
+-- send-off at Humble Autos, Lekki on 4 October, then into Benin.
 insert into expeditions (id, name, start_date, end_date, summary, is_placeholder)
-values ('00000000-0000-4000-8000-000000000001', 'West Africa coast (placeholder)', '2026-06-01', '2026-06-14',
-        'Placeholder route through Benin, Togo and Ghana. Replace with the real stops.', true)
+values ('00000000-0000-4000-8000-000000000002', 'Project Africa 54: West Africa', '2026-10-04', null,
+        'Set off from Lagos on 4 October 2026, into Benin, country number 1.', false)
 on conflict (id) do nothing;
 
 insert into stops (id, expedition_id, city, country_iso2, lat, lng, arrived_on, left_on, arrival_mode, caption, is_reconstructed) values
-  ('00000000-0000-4000-8000-000000000101', '00000000-0000-4000-8000-000000000001', 'Lagos',   'NG', 6.4550, 3.3841, '2026-06-01', '2026-06-01', 'drive', 'Home base', true),
-  ('00000000-0000-4000-8000-000000000102', '00000000-0000-4000-8000-000000000001', 'Cotonou', 'BJ', 6.3654, 2.4183, '2026-06-02', '2026-06-04', 'drive', null, true),
-  ('00000000-0000-4000-8000-000000000103', '00000000-0000-4000-8000-000000000001', 'Lomé',    'TG', 6.1319, 1.2228, '2026-06-05', '2026-06-07', 'drive', null, true),
-  ('00000000-0000-4000-8000-000000000104', '00000000-0000-4000-8000-000000000001', 'Accra',   'GH', 5.6037, -0.1870, '2026-06-08', '2026-06-12', 'drive', null, true),
-  ('00000000-0000-4000-8000-000000000105', '00000000-0000-4000-8000-000000000001', 'Lagos',   'NG', 6.4550, 3.3841, '2026-06-14', null, 'drive', 'Back home', true)
+  ('00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-000000000002', 'Lagos',   'NG', 6.4485, 3.4552, '2026-10-04', '2026-10-04', 'drive', 'Farewell send-off at Humble Autos, Lekki Phase 1', true),
+  ('00000000-0000-4000-8000-000000000202', '00000000-0000-4000-8000-000000000002', 'Cotonou', 'BJ', 6.37146, 2.40979, '2026-10-05', null, 'drive', 'Étoile Rouge', true)
 on conflict (id) do nothing;
+
+-- Cotonou's checkpoint picture: Michael with IJEOMA by Étoile Rouge.
+update stops set photo_url = '/photos/stops/cotonou-etoile-rouge.jpg'
+where id = '00000000-0000-4000-8000-000000000202' and photo_url is null;
 
 -- Country pictures for the trail preview: frames from his story highlights
 -- (Ghana, Togo, Benin) and a reel photo of IJEOMA in Lagos (Nigeria).

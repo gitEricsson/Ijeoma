@@ -3,7 +3,7 @@ import type { Map as MLMap } from "maplibre-gl";
 import type { LngLat } from "@/lib/routing";
 import { haversineKm } from "@/lib/routing";
 import { IJEOMA_ORANGE } from "./car";
-import { applyCarLook, loadIjeoma } from "./ijeoma";
+import { applyCarLook, BODY_NAME, loadIjeoma, WHEEL_NAMES } from "./ijeoma";
 
 // IJEOMA on the map: a three.js render in a small transparent canvas that
 // follows a point on the trail every map frame. MapLibre v6's globe has no
@@ -13,10 +13,18 @@ import { applyCarLook, loadIjeoma } from "./ijeoma";
 // Motion is eased in screen space: the heading turns towards its target with
 // frame-time damping (shortest way round) and the position is lightly smoothed,
 // so corners and speed changes never snap, whatever the frame rate.
+//
+// While she drives, the wheels roll with her real on-screen travel and the
+// body rides on a little suspension: three out-of-step waves plus the odd
+// pothole on a damped spring, scaled by speed, so she's still when parked.
 
 const SIZE = 180; // css px of the overlay canvas
 const YAW_TAU = 0.16; // seconds
 const POS_TAU = 0.06;
+const PX_PER_UNIT = SIZE / 6.8; // the camera frames 6.8 m across the canvas
+const WHEEL_R = 0.37; // metres
+const MAX_REV_PER_S = 2; // faster and the five spokes strobe backwards
+const SPEED_TAU = 0.25;
 
 function shortestAngle(from: number, to: number) {
   return ((((to - from) % (Math.PI * 2)) + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
@@ -41,9 +49,19 @@ export class CarMarker {
   private map: MLMap | null = null;
   // What the last WebGL frame showed; skip the draw when nothing changed.
   private drawn = "";
+  // Driving: wheels, suspension and how fast she's going (screen px/s).
+  private sprung: THREE.Object3D | null = null;
+  private wheels: THREE.Object3D[] = [];
+  private readonly bumpy: boolean;
+  private prevPos: LngLat | null = null;
+  private speed = 0;
+  private spin = 0;
+  private clock = 0;
+  private bump = { y: 0, v: 0, next: 2 };
 
   constructor(parent: HTMLElement, opts: { low: boolean; reduced?: boolean; onClick: () => void }) {
     this.smooth = !opts.reduced;
+    this.bumpy = !opts.reduced;
     this.canvas = document.createElement("canvas");
     Object.assign(this.canvas.style, {
       position: "absolute",
@@ -73,6 +91,8 @@ export class CarMarker {
       .then((template) => {
         if (this.disposed) return;
         this.body = template.clone(true);
+        this.sprung = this.body.getObjectByName(BODY_NAME) ?? null;
+        this.wheels = WHEEL_NAMES.map((n) => this.body.getObjectByName(n)).filter((w): w is THREE.Object3D => !!w);
         this.scene.add(this.body);
         this.ready = true;
         this.map?.triggerRepaint();
@@ -115,6 +135,7 @@ export class CarMarker {
       this.screen = null;
       this.yaw = null;
       this.drawn = "";
+      this.prevPos = null;
       return;
     }
     this.canvas.style.display = "block";
@@ -148,21 +169,69 @@ export class CarMarker {
     this.body.scale.setScalar(scale);
     this.glow.scale.setScalar(scale);
 
+    this.drive(map, pos, p, dt, scale);
+
     const elev = THREE.MathUtils.degToRad(THREE.MathUtils.clamp(90 - map.getPitch(), 32, 62));
     this.camera.position.set(0, Math.sin(elev) * 20, Math.cos(elev) * 20);
     this.camera.lookAt(0, 0.6, 0);
 
     // The map repaints for its own animations (the glow, the ripple); the car
-    // only needs drawing again when her heading, size or tilt changes.
-    const key = `${this.yaw.toFixed(4)}|${scale.toFixed(4)}|${elev.toFixed(4)}`;
+    // only needs drawing again when her heading, size, tilt, wheels or ride change.
+    const sp = this.sprung;
+    const ride = sp ? `${sp.position.y.toFixed(4)}|${sp.rotation.x.toFixed(4)}|${sp.rotation.z.toFixed(4)}` : "";
+    const key = `${this.yaw.toFixed(4)}|${scale.toFixed(4)}|${elev.toFixed(4)}|${this.spin.toFixed(3)}|${ride}`;
     if (key !== this.drawn) {
       this.renderer.render(this.scene, this.camera);
       this.drawn = key;
     }
 
-    // Keep drawing until the turn and position have settled.
-    const settling = Math.abs(shortestAngle(this.yaw, target)) > 0.002 || Math.hypot(p.x - this.screen.x, p.y - this.screen.y) > 0.3;
+    // Keep drawing until the turn, position and suspension have settled.
+    const settling =
+      Math.abs(shortestAngle(this.yaw, target)) > 0.002 ||
+      Math.hypot(p.x - this.screen.x, p.y - this.screen.y) > 0.3 ||
+      this.speed > 0.5 ||
+      Math.abs(this.bump.y) > 1e-4 ||
+      Math.abs(this.bump.v) > 1e-3;
     if (settling) requestAnimationFrame(() => !this.disposed && map.triggerRepaint());
+  }
+
+  // Wheels and suspension from how far she moved this frame. Both ends are
+  // projected with the current camera, so panning and zooming don't count.
+  private drive(map: MLMap, pos: LngLat, p: { x: number; y: number }, dt: number, scale: number) {
+    let moved = 0;
+    if (this.prevPos && dt > 0) {
+      const q = map.project(this.prevPos);
+      moved = Math.hypot(p.x - q.x, p.y - q.y);
+    }
+    this.prevPos = pos;
+    const target = dt > 0 ? Math.min(moved / dt, 2000) : 0;
+    if (dt > 0) this.speed += (target - this.speed) * (1 - Math.exp(-dt / SPEED_TAU));
+
+    // Rolling: arc length over radius, capped so the spokes don't strobe.
+    const wheelPx = Math.max(1, WHEEL_R * scale * PX_PER_UNIT);
+    this.spin -= Math.min(moved / wheelPx, MAX_REV_PER_S * 2 * Math.PI * dt);
+    for (const w of this.wheels) w.rotation.z = this.spin;
+
+    const sp = this.sprung;
+    if (!sp || !this.bumpy || dt === 0) return;
+    const m = Math.min(1, this.speed / 60); // 0 parked, 1 at cruising speed
+    this.clock += dt;
+    // The odd pothole: a kick to a damped spring every 2 to 5 seconds.
+    if (m > 0.2 && this.clock > this.bump.next) {
+      this.bump.v -= (0.35 + Math.random() * 0.35) * m;
+      this.bump.next = this.clock + 2 + Math.random() * 3;
+    }
+    for (let left = dt; left > 0; left -= 1 / 120) {
+      const h = Math.min(left, 1 / 120);
+      this.bump.v += (-180 * this.bump.y - 11 * this.bump.v) * h;
+      this.bump.y += this.bump.v * h;
+    }
+    const wave = (hz: number, phase: number) => Math.sin(2 * Math.PI * hz * this.clock + phase);
+    const road = 0.55 * wave(1.3, 0) + 0.3 * wave(2.1, 1.3) + 0.15 * wave(3.7, 2.1);
+    // Exaggerated a little: at map size a true 2 cm ride would be under a pixel.
+    sp.position.y = m * 0.05 * road + this.bump.y;
+    sp.rotation.z = m * 0.02 * wave(1.1, 0.7) + this.bump.y * 0.35; // pitch
+    sp.rotation.x = m * 0.014 * wave(0.9, 2.4); // roll
   }
 
   dispose() {
