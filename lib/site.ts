@@ -1,5 +1,7 @@
 export const DONATE_URL = "https://www.gofundme.com/f/help-michaelspyder-raise-1000000-for-cancer-awareness-in";
 export const INSTAGRAM_URL = "https://www.instagram.com/michaelspyder/";
+// His YouTube channel, where the live streams are.
+export const YOUTUBE_URL = "https://www.youtube.com/@michaelspyder";
 export const JOURNEY_TAG = "journey";
 export const RAISED_TAG = "raised";
 export const CONTACT_EMAIL = "michaelspyderinfo@gmail.com";

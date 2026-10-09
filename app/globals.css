@@ -84,6 +84,24 @@
   .chip:hover {
     border-color: var(--line-strong);
   }
+
+  /* FAQ questions: no browser marker; the chevron turns and the question
+     goes orange while its answer is open. */
+  .faq-q {
+    list-style: none;
+  }
+  .faq-q::-webkit-details-marker {
+    display: none;
+  }
+  .faq-chev {
+    transition: rotate 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  details[open] > .faq-q {
+    color: var(--orange);
+  }
+  details[open] > .faq-q .faq-chev {
+    rotate: 180deg;
+  }
 }
 
 html,
@@ -328,6 +346,22 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .card-in {
+    animation: none;
+  }
+}
+
+/* The HUD's driving mark: the road's centre line runs back under IJEOMA. One
+   dash and gap (6 units) per cycle, so the loop is seamless. */
+.road-run {
+  animation: road-run 0.7s linear infinite;
+}
+@keyframes road-run {
+  to {
+    stroke-dashoffset: 6;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .road-run {
     animation: none;
   }
 }

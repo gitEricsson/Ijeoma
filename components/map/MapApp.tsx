@@ -97,7 +97,7 @@ export default function MapApp({ journey, raised }: { journey: Journey; raised: 
     return () => cancel(id);
   }, [mapReady]);
 
-  // Device checks, intro once per session, deep links (?stop=… / ?country=…).
+  // Device checks, intro once per session, deep links (?stop=… / ?country=… / ?faq).
   useEffect(() => {
     let seen = false;
     try {
@@ -106,14 +106,16 @@ export default function MapApp({ journey, raised }: { journey: Journey; raised: 
     const params = new URLSearchParams(location.search);
     const stop = params.get("stop");
     const country = params.get("country")?.toUpperCase();
+    const faq = params.has("faq");
     const reduced = prefersReducedMotion();
     // A timeout, not rAF: rAF never fires in a background tab.
     const id = setTimeout(() => {
-      const intro = !seen && !reduced && !stop && !country;
+      const intro = !seen && !reduced && !stop && !country && !faq;
       setEnv({ ready: true, low: isLowEnd(), reduced, webgl: hasWebGL(), intro });
       if (!intro) setStarted(true);
       if (stop && journey.stops.some((s) => s.id === stop)) setSheet({ kind: "stop", id: stop });
       else if (country && journey.countries.some((c) => c.iso2 === country)) setSheet({ kind: "country", iso2: country });
+      else if (faq) setSheet({ kind: "faq" });
     }, 0);
     return () => clearTimeout(id);
   }, [journey, setSheet]);
@@ -193,6 +195,7 @@ export default function MapApp({ journey, raised }: { journey: Journey; raised: 
             raised={raised}
             current={current}
             onCountry={(iso2) => setSheet({ kind: "country", iso2 })}
+            onFaq={() => setSheet({ kind: "faq" })}
             countDelay={hudDelay + 300}
           />
 
@@ -274,7 +277,7 @@ export default function MapApp({ journey, raised }: { journey: Journey; raised: 
         />
       )}
 
-      {extrasReady && <Sheets journey={journey} sheet={sheet} setSheet={setSheet} />}
+      {extrasReady && <Sheets journey={journey} sheet={sheet} setSheet={setSheet} openGarage={() => setGarageOpen(true)} />}
       {extrasReady && <Garage open={garageOpen} onClose={() => setGarageOpen(false)} sponsors={journey.sponsors} low={env.low} />}
     </main>
   );

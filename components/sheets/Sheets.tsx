@@ -8,14 +8,17 @@ import PostCard from "@/components/ig/PostCard";
 import BottomSheet from "./BottomSheet";
 import ShareButton from "./ShareButton";
 import Passport from "./Passport";
+import Faq from "./Faq";
 import { loadCancerFacts, randomFact, type CancerFact } from "@/lib/cancerFacts";
 
-export type SheetState = { kind: "stop"; id: string } | { kind: "country"; iso2: string } | { kind: "passport" } | { kind: "feed" } | null;
+export type SheetState = { kind: "stop"; id: string } | { kind: "country"; iso2: string } | { kind: "passport" } | { kind: "feed" } | { kind: "faq" } | null;
 
 type Props = {
   journey: Journey;
   sheet: SheetState;
   setSheet: (s: SheetState) => void;
+  /** Opens IJEOMA's garage (from the FAQ's sponsor answer). */
+  openGarage: () => void;
 };
 
 function Posts({ posts }: { posts: Post[] }) {
@@ -40,7 +43,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-export default function Sheets({ journey, sheet, setSheet }: Props) {
+export default function Sheets({ journey, sheet, setSheet, openGarage }: Props) {
   const close = () => setSheet(null);
   const countryBy = new Map(journey.countries.map((c) => [c.iso2, c]));
 
@@ -143,6 +146,19 @@ export default function Sheets({ journey, sheet, setSheet }: Props) {
             <PostCard key={p.id} post={p} />
           ))}
         </div>
+      </BottomSheet>
+    );
+  }
+
+  if (sheet?.kind === "faq") {
+    return (
+      <BottomSheet open onClose={close} title="FAQ">
+        <Faq
+          onGarage={() => {
+            close();
+            openGarage();
+          }}
+        />
       </BottomSheet>
     );
   }
