@@ -186,6 +186,7 @@ export default function MapApp({ journey, raised }: { journey: Journey; raised: 
 
       {showChrome && (
         <div
+          data-map-cover="top"
           style={{ animationDelay: `${hudDelay}ms` }}
           className="hud-in pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-col gap-2 p-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:inset-y-0 md:right-auto md:w-[440px] md:p-5 xl:w-[480px]"
         >
@@ -226,7 +227,7 @@ export default function MapApp({ journey, raised }: { journey: Journey; raised: 
       )}
 
       {showChrome && (
-        <nav className="pointer-events-auto absolute inset-x-0 bottom-0 z-20 flex items-stretch justify-center gap-1.5 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:bottom-5 md:left-auto md:right-5 md:p-0">
+        <nav data-map-cover="bottom" className="pointer-events-auto absolute inset-x-0 bottom-0 z-20 flex items-stretch justify-center gap-1.5 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:bottom-5 md:left-auto md:right-5 md:p-0">
           <NavButton label="Passport" onClick={() => setSheet({ kind: "passport" })} active={sheet?.kind === "passport"}>
             <svg {...icon} viewBox="0 0 18 18">
               <rect x="3.5" y="1.75" width="11" height="14.5" />

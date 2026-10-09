@@ -53,7 +53,7 @@ export default function ReplayBar({ seek, onClose, reduced }: Props) {
   }, [playing]);
 
   return (
-    <div className="pointer-events-auto absolute border border-line bg-panel-solid inset-x-3 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4rem)] z-20 p-3 md:inset-x-auto md:bottom-24 md:right-5 md:w-[460px]">
+    <div data-map-cover="replay" className="pointer-events-auto absolute border border-line bg-panel-solid inset-x-3 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4rem)] z-20 p-3 md:inset-x-auto md:bottom-24 md:right-5 md:w-[460px]">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="text-sm text-muted">Replay</div>

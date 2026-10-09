@@ -20,6 +20,31 @@ maplibregl.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 const ORANGE = "#ff6a13";
 // Desktop HUD column width (md:w-[440px] xl:w-[480px] in MapApp); the camera keeps the trail clear of it.
 const hudRail = () => (window.innerWidth >= 1280 ? 480 : 440);
+
+// Phones: the HUD covers the top of the map, the nav (and, in replay, the
+// replay bar) the bottom, and how much depends on the screen (the HUD wraps on
+// narrow ones). Measure them (they're marked data-map-cover) so the camera
+// centres things in the clear strip between, with fixed fallbacks if they
+// aren't on screen.
+function phoneInsets(fallback: { top: number; bottom: number }, replay = false) {
+  const h = window.innerHeight;
+  const rects = (...covers: string[]) =>
+    covers
+      .flatMap((c) => [...document.querySelectorAll<HTMLElement>(`[data-map-cover="${c}"]`)])
+      .map((e) => e.getBoundingClientRect())
+      .filter((r) => r.height > 0);
+  const tops = rects("top");
+  const bottoms = replay ? rects("bottom", "replay") : rects("bottom");
+  let top = tops.length ? Math.max(...tops.map((r) => r.bottom)) + 12 : fallback.top;
+  let bottom = bottoms.length ? h - Math.min(...bottoms.map((r) => r.top)) + 12 : fallback.bottom;
+  // Always leave some open map; on a very short screen, share out what's left.
+  const short = 140 - (h - top - bottom);
+  if (short > 0) {
+    top -= short / 2;
+    bottom -= short / 2;
+  }
+  return { top: Math.max(0, top), bottom: Math.max(0, bottom), left: 0, right: 0 };
+}
 const DEM_TILES = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png";
 
 /** A spot on the trail being previewed (hover on desktop, tap on phones). */
@@ -158,7 +183,7 @@ export default function Globe(props: Props) {
   // The "today" camera. Keeps the trail clear of the HUD: on top on phones, on the left on desktop.
   const overview = () => {
     const narrow = window.innerWidth < 768;
-    const padding = narrow ? { top: 300, bottom: 90, left: 0, right: 0 } : { top: 0, bottom: 0, left: hudRail(), right: 0 };
+    const padding = narrow ? phoneInsets({ top: 300, bottom: 90 }) : { top: 0, bottom: 0, left: hudRail(), right: 0 };
     return { center: focusCenter(stops, countries), zoom: narrow ? 4 : 4.6, padding, pitch: low ? 0 : 35 };
   };
 
@@ -232,7 +257,8 @@ export default function Globe(props: Props) {
           s.begun = true;
           map.stop();
           const narrow = window.innerWidth < 768;
-          const padding = narrow ? { top: 120, bottom: 200, left: 0, right: 0 } : { top: 0, bottom: 0, left: hudRail(), right: 0 };
+          // On phones, in the strip between the HUD and the replay bar (the follow-cam keeps this padding).
+          const padding = narrow ? phoneInsets({ top: 120, bottom: 200 }, true) : { top: 0, bottom: 0, left: hudRail(), right: 0 };
           map.easeTo({ center: pt.at, zoom: narrow ? 6 : 6.5, pitch: low ? 0 : 50, padding, duration: reduced ? 0 : 1400, essential: true });
         } else if (!map.isMoving()) {
           // Follow the car with time-based damping, so it's smooth at any frame rate.
