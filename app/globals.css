@@ -152,6 +152,7 @@ body {
   scrollbar-width: none;
 }
 
+/* The admin route preview still uses MapLibre's own credits. */
 .maplibregl-ctrl-attrib {
   background: oklch(0.145 0.006 50 / 0.6) !important;
   color: var(--muted) !important;

@@ -304,7 +304,8 @@ export default function Globe(props: Props) {
           style,
           center: reduced ? [12, 4] : [-35, 8],
           zoom: reduced ? (narrow ? 2.1 : 2.6) : narrow ? 0.9 : 1.4,
-          attributionControl: { compact: true },
+          // Credits are our own short line (see the JSX below), not MapLibre's control.
+          attributionControl: false,
           maxPitch: 60,
           pixelRatio: low ? 1 : Math.min(window.devicePixelRatio, 2),
         });
@@ -580,6 +581,24 @@ export default function Globe(props: Props) {
     else map.flyTo({ ...opts, duration: 1800, essential: true });
   }, [focus, reduced]);
 
-  // Inline style: maplibre-gl.css sets position: relative on the container, which beats Tailwind utilities.
-  return <div ref={el} style={{ position: "absolute", inset: 0 }} aria-label="Map of IJEOMA's journey across Africa" role="img" />;
+  return (
+    <>
+      {/* Inline style: maplibre-gl.css sets position: relative on the container, which beats Tailwind utilities. */}
+      <div ref={el} style={{ position: "absolute", inset: 0 }} aria-label="Map of IJEOMA's journey across Africa" role="img" />
+      {/* The map's credits, in place of MapLibre's control: one short, always-visible
+          line at the very bottom, in the strip under the buttons. */}
+      <p className="pointer-events-auto absolute inset-x-0 bottom-px z-10 truncate px-3 text-center text-[8px] leading-none text-muted/60 md:left-auto md:right-5 md:text-right">
+        <a href="https://openfreemap.org" target="_blank" rel="noopener noreferrer" className="hover:text-muted">
+          OpenFreeMap
+        </a>{" "}
+        <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener noreferrer" className="hover:text-muted">
+          © OpenMapTiles
+        </a>{" "}
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="hover:text-muted">
+          © OpenStreetMap
+        </a>
+        {!low && " · Terrain: Mapzen"}
+      </p>
+    </>
+  );
 }
