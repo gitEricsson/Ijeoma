@@ -122,12 +122,19 @@ on conflict (id) do nothing;
 
 insert into stops (id, expedition_id, city, country_iso2, lat, lng, arrived_on, left_on, arrival_mode, caption, is_reconstructed) values
   ('00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-000000000002', 'Lagos',   'NG', 6.4485, 3.4552, '2026-10-04', '2026-10-04', 'drive', 'Farewell send-off at Humble Autos, Lekki Phase 1', true),
-  ('00000000-0000-4000-8000-000000000202', '00000000-0000-4000-8000-000000000002', 'Cotonou', 'BJ', 6.37146, 2.40979, '2026-10-05', null, 'drive', 'Étoile Rouge', true)
+  ('00000000-0000-4000-8000-000000000202', '00000000-0000-4000-8000-000000000002', 'Cotonou', 'BJ', 6.37146, 2.40979, '2026-10-05', null, 'drive', 'Étoile Rouge', true),
+  ('00000000-0000-4000-8000-000000000203', '00000000-0000-4000-8000-000000000002', 'Porto-Novo', 'BJ', 6.499, 2.625, '2026-10-11', null, 'drive', 'By the statue in Porto-Novo', true),
+  ('00000000-0000-4000-8000-000000000204', '00000000-0000-4000-8000-000000000002', 'Agblangandan', 'BJ', 6.378, 2.487, '2026-10-14', null, 'drive', 'Pekadis', true)
 on conflict (id) do nothing;
 
--- Cotonou's checkpoint picture: Michael with IJEOMA by Étoile Rouge.
+-- Checkpoint pictures: Michael with IJEOMA by Étoile Rouge (Cotonou), by the
+-- statue (Porto-Novo, Sunday 11 Oct) and bonnet up at Pekadis (Wednesday 14 Oct).
 update stops set photo_url = '/photos/stops/cotonou-etoile-rouge.jpg'
 where id = '00000000-0000-4000-8000-000000000202' and photo_url is null;
+update stops set photo_url = '/photos/stops/porto-novo-statue.jpg'
+where id = '00000000-0000-4000-8000-000000000203' and photo_url is null;
+update stops set photo_url = '/photos/stops/agblangandan-pekadis.jpg'
+where id = '00000000-0000-4000-8000-000000000204' and photo_url is null;
 
 -- Country pictures for the trail preview: frames from his story highlights
 -- (Ghana, Togo, Benin) and a reel photo of IJEOMA in Lagos (Nigeria).
