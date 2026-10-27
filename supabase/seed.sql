@@ -126,14 +126,18 @@ insert into stops (id, expedition_id, city, country_iso2, lat, lng, arrived_on, 
   ('00000000-0000-4000-8000-000000000203', '00000000-0000-4000-8000-000000000002', 'Porto-Novo', 'BJ', 6.499, 2.625, '2026-10-11', null, 'drive', 'By the statue in Porto-Novo', true),
   ('00000000-0000-4000-8000-000000000204', '00000000-0000-4000-8000-000000000002', 'Agblangandan', 'BJ', 6.378, 2.487, '2026-10-14', null, 'drive', 'Pekadis', true),
   ('00000000-0000-4000-8000-000000000205', '00000000-0000-4000-8000-000000000002', 'Gbodjomé', 'TG', 6.1945, 1.4164, '2026-10-17', null, 'drive', 'Thumbs up on the coast road', true),
-  ('00000000-0000-4000-8000-000000000207', '00000000-0000-4000-8000-000000000002', 'Kpalimé', 'TG', 6.9107, 0.6324, '2026-10-20', null, 'drive', 'Off the tarmac in the hills outside Kpalimé', true),
-  ('00000000-0000-4000-8000-000000000206', '00000000-0000-4000-8000-000000000002', 'Nyamassila', 'TG', 7.9882, 1.1922, '2026-10-24', null, 'drive', 'Roadside stop on the way north', true)
+  ('00000000-0000-4000-8000-000000000206', '00000000-0000-4000-8000-000000000002', 'Nyamassila', 'TG', 7.9882, 1.1922, '2026-10-22', null, 'drive', 'Roadside stop on the way north', true),
+  ('00000000-0000-4000-8000-000000000207', '00000000-0000-4000-8000-000000000002', 'Kpalimé', 'TG', 6.9107, 0.6324, '2026-10-23', null, 'drive', 'Off the tarmac in the hills outside Kpalimé', true),
+  ('00000000-0000-4000-8000-000000000208', '00000000-0000-4000-8000-000000000002', 'Dapaong', 'TG', 10.8623, 0.2076, '2026-10-25', null, 'drive', 'Arms wide on the bonnet in Dapaong', true),
+  ('00000000-0000-4000-8000-000000000209', '00000000-0000-4000-8000-000000000002', 'Tenkodogo', 'BF', 11.7800, -0.3697, '2026-10-27', null, 'drive', 'Up on the roof rack in Tenkodogo', true)
 on conflict (id) do nothing;
 
 -- Checkpoint pictures: Michael with IJEOMA by Étoile Rouge (Cotonou), by the
 -- statue (Porto-Novo, Sunday 11 Oct), bonnet up at Pekadis (Wednesday 14 Oct),
--- then into Togo: Gbodjomé on the coast road (17 Oct), the hills outside
--- Kpalimé (undated; placed on 20 Oct, between the two) and Nyamassila (24 Oct).
+-- then into Togo: Gbodjomé on the coast road (17 Oct), Nyamassila (22 Oct),
+-- back south to the hills outside Kpalimé (23 Oct), up to Dapaong (25 Oct) and
+-- over the border to Tenkodogo, Burkina Faso (27 Oct). Only Gbodjomé and
+-- Kpalimé have firm dates; the rest are fitted around them.
 update stops set photo_url = '/photos/stops/cotonou-etoile-rouge.jpg'
 where id = '00000000-0000-4000-8000-000000000202' and photo_url is null;
 update stops set photo_url = '/photos/stops/porto-novo-statue.jpg'
@@ -142,10 +146,14 @@ update stops set photo_url = '/photos/stops/agblangandan-pekadis.jpg'
 where id = '00000000-0000-4000-8000-000000000204' and photo_url is null;
 update stops set photo_url = '/photos/stops/gbodjome-coast-road.jpg'
 where id = '00000000-0000-4000-8000-000000000205' and photo_url is null;
-update stops set photo_url = '/photos/stops/kpalime-hills-track.jpg'
-where id = '00000000-0000-4000-8000-000000000207' and photo_url is null;
 update stops set photo_url = '/photos/stops/nyamassila-roadside.jpg'
 where id = '00000000-0000-4000-8000-000000000206' and photo_url is null;
+update stops set photo_url = '/photos/stops/kpalime-hills-track.jpg'
+where id = '00000000-0000-4000-8000-000000000207' and photo_url is null;
+update stops set photo_url = '/photos/stops/dapaong-on-the-bonnet.jpg'
+where id = '00000000-0000-4000-8000-000000000208' and photo_url is null;
+update stops set photo_url = '/photos/stops/tenkodogo-roof-rack.jpg'
+where id = '00000000-0000-4000-8000-000000000209' and photo_url is null;
 
 -- Country pictures for the trail preview: frames from his story highlights
 -- (Ghana, Togo, Benin) and a reel photo of IJEOMA in Lagos (Nigeria).
