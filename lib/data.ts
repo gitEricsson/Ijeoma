@@ -46,7 +46,7 @@ async function loadJourney(): Promise<Journey> {
 }
 
 // Visitors only ever read this cache; admin saves expire the tag.
-export const getJourney = unstable_cache(loadJourney, ["journey-v10"], { tags: [JOURNEY_TAG], revalidate: 86400 });
+export const getJourney = unstable_cache(loadJourney, ["journey-v11"], { tags: [JOURNEY_TAG], revalidate: 86400 });
 
 // Live GoFundMe totals when reachable, otherwise the admin's manual figure.
 export async function getRaised(site: SiteState): Promise<Raised> {
